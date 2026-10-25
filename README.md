@@ -2,6 +2,8 @@
 
 A Claude Code mod that turns down everything in the transcript except Claude's answers.
 
+![A Claude Code session with quiet-transcript: narration and tool lines faded, an edit line showing +5 -2, and Claude's answer in normal text](docs/screenshot.png)
+
 The text Claude writes before a tool call, the tool calls themselves, grouped reads and searches, and slash-command output are drawn in a faint, tinted italic. The answer that ends each turn keeps its normal look, older ones further up included. Added and removed line counts stay green and red, and a failed call still says "failed" in red.
 
 Each quieted tool line has a **details** button that brings back the app's own card with the full output and diff. **hide details** folds it away again.
