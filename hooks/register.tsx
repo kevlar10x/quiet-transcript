@@ -59,8 +59,11 @@ function describe(tool: string, input: unknown) {
   const field = (name: string) => (typeof fields[name] === 'string' ? (fields[name] as string) : '')
   switch (tool) {
     case 'Bash':
-    case 'PowerShell':
-      return `Ran ${short(field('description') || field('command'))}`
+    case 'PowerShell': {
+      // A description already reads as an action ("Run the tests"); a bare command gets "Ran".
+      const description = short(field('description'))
+      return description ? description.charAt(0).toUpperCase() + description.slice(1) : `Ran ${short(field('command'))}`
+    }
     case 'Read':
       return `Read ${fileName(field('file_path'))}`
     case 'Edit':
@@ -93,8 +96,24 @@ function describe(tool: string, input: unknown) {
   return first ? `${tool} ${short(first, 50)}` : tool
 }
 
-// Added and removed lines of an edit or write, from its stored result.
-function lineCounts(tool: string, output: unknown) {
+// Lines in `after` that `before` lacks, and the reverse, counted as a multiset.
+function lineDiff(before: string, after: string) {
+  const left = new Map<string, number>()
+  for (const line of before.split('\n')) left.set(line, (left.get(line) ?? 0) + 1)
+  let added = 0
+  for (const line of after.split('\n')) {
+    const n = left.get(line) ?? 0
+    if (n > 0) left.set(line, n - 1)
+    else added++
+  }
+  let removed = 0
+  for (const n of left.values()) removed += n
+  return { added, removed }
+}
+
+// Added and removed lines of an edit or write: from its stored result where the
+// surface hands one over, else from the edit's own input (the desktop sends none).
+function lineCounts(tool: string, input: unknown, output: unknown) {
   const result = (output ?? {}) as { structuredPatch?: { lines?: string[] }[]; type?: string; content?: string }
   let added = 0
   let removed = 0
@@ -104,8 +123,17 @@ function lineCounts(tool: string, output: unknown) {
       else if (line.startsWith('-')) removed++
     }
   }
-  if (tool === 'Write' && result.type === 'create' && added === 0 && typeof result.content === 'string') {
-    added = result.content.split('\n').length
+  if (added > 0 || removed > 0) return { added, removed }
+  if (tool === 'Write' && result.type === 'create' && typeof result.content === 'string') {
+    return { added: result.content.split('\n').length, removed: 0 }
+  }
+  const fields = (input ?? {}) as { old_string?: unknown; new_string?: unknown; edits?: unknown }
+  const edits = tool === 'MultiEdit' && Array.isArray(fields.edits) ? fields.edits : tool === 'Edit' ? [fields] : []
+  for (const edit of edits as { old_string?: unknown; new_string?: unknown }[]) {
+    if (typeof edit.old_string !== 'string' || typeof edit.new_string !== 'string') continue
+    const counts = lineDiff(edit.old_string, edit.new_string)
+    added += counts.added
+    removed += counts.removed
   }
   return { added, removed }
 }
@@ -170,7 +198,7 @@ export const register: Register = on => {
         </Box>
       )
     }
-    const { added, removed } = lineCounts(e.props.tool, e.props.output)
+    const { added, removed } = lineCounts(e.props.tool, e.props.input, e.props.output)
     return (
       <Box flexDirection="row" gap={1}>
         <Text {...QUIET}>

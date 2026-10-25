@@ -107,12 +107,41 @@ test('an edit row is one quiet line with green and red counts, and details opens
   }
 })
 
+test('an edit with no stored result (the desktop) counts its lines from the edit itself', async ($, on) => {
+  engine(on)
+  await start($)
+  const ui = await $.ui.mount({
+    plugin: PLUGIN,
+    surface: 'desktop',
+    component: 'ToolUse',
+    requestId: 'e2',
+    props: {
+      tool_use_id: 'e2',
+      tool: 'Edit',
+      input: { file_path: '/repo/tip.py', old_string: 'def split(a):\n    return a', new_string: 'def split(a):\n    if a == 0:\n        raise ValueError\n    return round(a, 2)' },
+      isRunning: false,
+      isErrored: false,
+      isInterrupted: false,
+    },
+  })
+  expect((await ui.find({ type: 'Text', text: '+3' }))?.props).toMatchObject({ color: 'success' })
+  expect((await ui.find({ type: 'Text', text: '-1' }))?.props).toMatchObject({ color: 'error' })
+})
+
+test('a command with no description says what ran', async ($, on) => {
+  engine(on)
+  await start($)
+  const props = { tool_use_id: 'b2', tool: 'Bash', input: { command: 'python tip.py' }, isRunning: false, isErrored: false, isInterrupted: false }
+  const row = await $.ui.mount({ plugin: PLUGIN, surface: 'desktop', component: 'ToolUse', requestId: 'b2', props })
+  expect((await row.find({ type: 'Text', text: /tip\.py/ }))?.text).toBe('Ran python tip.py')
+})
+
 test('a failed command says so in red; its result stays hidden until opened', async ($, on) => {
   engine(on)
   await start($)
   const props = { tool_use_id: 'b1', tool: 'Bash', input: { command: 'npm test', description: 'Run the tests' }, isRunning: false, isErrored: true, isInterrupted: false }
   const row = await $.ui.mount({ plugin: PLUGIN, surface: 'desktop', component: 'ToolUse', requestId: 'b1', props })
-  expect(await row.find({ type: 'Text', text: /Ran Run the tests/ })).toBeDefined()
+  expect((await row.find({ type: 'Text', text: /the tests/ }))?.text).toBe('Run the tests')
   expect((await row.find({ type: 'Text', text: 'failed' }))?.props).toMatchObject({ color: 'error' })
 
   const result = await $.ui.mount({
