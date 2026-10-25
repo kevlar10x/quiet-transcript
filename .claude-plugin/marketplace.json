@@ -1,0 +1,6 @@
+{
+  "name": "kevlar10x",
+  "owner": { "name": "kevlar10x" },
+  "description": "Claude Code mods by kevlar10x",
+  "plugins": [{ "name": "quiet-transcript", "source": "./" }]
+}
