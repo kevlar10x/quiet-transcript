@@ -47,3 +47,5 @@ claude plugin uninstall quiet-transcript
 ## License
 
 MIT
+
+If you'd like to leave a tip: https://ko-fi.com/kevlar10x
