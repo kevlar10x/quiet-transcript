@@ -4,6 +4,10 @@
   "description": "Quiets everything in the transcript except Claude's answers: narration, tool calls and command output draw in a faint tinted italic.",
   "author": { "name": "kevlar10x" },
   "license": "MIT",
+  "homepage": "https://github.com/kevlar10x/quiet-transcript",
   "repository": "https://github.com/kevlar10x/quiet-transcript",
+  "documentationUrl": "https://github.com/kevlar10x/quiet-transcript#readme",
+  "supportUrl": "https://github.com/kevlar10x/quiet-transcript/issues",
+  "keywords": ["transcript", "readability", "focus", "narration", "tool-calls", "mod"],
   "types": "./types/index.d.ts"
 }
