@@ -9,13 +9,25 @@ import type { EngineInterface as Engine, Register, ToolGroupCall } from 'claude-
 // in one quiet style, while added and removed line counts and failures keep
 // their colors. Each quieted tool row has a "details" button that brings back
 // the app's own full card.
+//
+// A message is narration by its row: a response is stored a block per row, so a
+// text row followed by a tool call in the same response is narration. Rows no id
+// reached the mod for (from before it loaded) fall back to matching paragraphs,
+// and a paragraph Claude also gave as an answer is never quieted that way.
 
 const narration = atom({ plugin: 'quiet-transcript', key: 'narration' } as const, [])
+const asides = atom({ plugin: 'quiet-transcript', key: 'asides' } as const, [])
+const answers = atom({ plugin: 'quiet-transcript', key: 'answers' } as const, [])
 const isOpen = atom({ plugin: 'quiet-transcript', key: 'isOpen' } as const, false)
 
 // Italic, in the theme's suggestion tint, dimmed: set apart from the app's own grey rows.
 const QUIET = { color: 'suggestion', dimColor: true, italic: true } as const
-const KEEP_HASHES = 2000
+const KEEP = 2000
+
+// Every main-conversation row stored since the mod loaded, and the text rows of
+// the response being stored that no tool call has followed yet.
+const stored = new Set<string>()
+let pending: string[] = []
 
 // FNV-1a over a paragraph with its whitespace collapsed.
 function hash(text: string) {
@@ -157,10 +169,13 @@ function groupLine(calls: ReadonlyArray<ToolGroupCall>) {
   return line.charAt(0).toUpperCase() + line.slice(1)
 }
 
-async function remember($: Engine, text: string) {
+// Adds text's paragraphs to the asides when the step called a tool, else to the answers.
+async function remember($: Engine, text: string, calledTool: boolean) {
   const hashes = hashesOf(text)
   if (hashes.length === 0) return
-  await update($, narration, list => [...new Set([...list, ...hashes])].slice(-KEEP_HASHES))
+  const add = (list: string[]) => [...new Set([...list, ...hashes])].slice(-KEEP)
+  if (calledTool) await update($, asides, add)
+  else await update($, answers, add)
 }
 
 export const register: Register = on => {
@@ -168,21 +183,44 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     const started = await next(e)
     const rows = await $.session.messages()
-    const earlier = rows.filter(row => row.role === 'assistant' && row.toolUses.length > 0 && row.text.trim())
-    for (const row of earlier) await remember($, row.text)
+    for (const row of rows) {
+      if (row.role === 'assistant' && row.text.trim()) await remember($, row.text, row.toolUses.length > 0)
+    }
     return started
+  })
+
+  on('session.append', async ($, e, next) => {
+    const row = await next(e)
+    if (e.agentId !== undefined || row.deny !== undefined) return row
+    stored.add(row.uuid)
+    const blocks = row.message.content
+    const hasText = blocks.some(block => block.type === 'text' && block.text.trim() !== '')
+    if (e.door !== 'response') {
+      pending = []
+    } else if (blocks.some(block => block.type === 'tool_use')) {
+      const rows = hasText ? [...pending, row.uuid] : pending
+      pending = []
+      if (rows.length > 0) await update($, narration, list => [...list, ...rows].slice(-KEEP))
+    } else if (hasText) {
+      pending.push(row.uuid)
+    }
+    return row
   })
 
   on('turn.step', async function* ($, e, next) {
     const result = yield* next(e)
-    if (e.agentId === undefined && result.toolUses.length > 0 && result.answer.trim()) await remember($, result.answer)
+    if (e.agentId === undefined && result.answer.trim()) await remember($, result.answer, result.toolUses.length > 0)
     return result
   })
 
   on('ui.render', { component: 'AssistantMessage' }, async ($, e, next) => {
-    const known = new Set(await read($, narration))
+    // Read all three, so a later write to any of them draws the row again.
+    const rows = await read($, narration)
+    const aside = new Set(await read($, asides))
+    const answer = new Set(await read($, answers))
     const hashes = hashesOf(e.props.text)
-    const isNarration = e.props.isSummary === true || (hashes.length > 0 && hashes.every(one => known.has(one)))
+    const byText = hashes.length > 0 && hashes.every(one => aside.has(one) && !answer.has(one))
+    const isNarration = e.props.isSummary === true || (stored.has(e.requestId) ? rows.includes(e.requestId) : byText)
     if (!isNarration) return next(e)
     const { Text } = $.ui.resolve(e)
     return <Text {...QUIET}>{plain(e.props.text)}</Text>

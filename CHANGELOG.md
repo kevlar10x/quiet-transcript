@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.1.3 - 2026-10-26
 
+- An answer that repeats something Claude wrote before a tool call keeps its normal look. Narration is now picked out by the message it's in, and text Claude also gave as an answer is never faded.
 - The README and the mod's code name kevlar10x and link the original repository.
 
 ## 0.1.2 - 2026-10-26

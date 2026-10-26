@@ -43,20 +43,90 @@ function message($: Engine, surface: (typeof SURFACES)[number], text: string, ex
   return $.ui.mount({ plugin: PLUGIN, surface, component: 'AssistantMessage', requestId: `m${++messages}`, props: { text, isFirstOfReply: true, ...extra } })
 }
 
-test('the answer is drawn as the app draws it, narration quiet', async ($, on) => {
-  engine(on, [], [{ answer: 'Checking the config first.', toolUses: [{ name: 'Read', input: { file_path: '/a/b.ts' } }] }])
+// Stores a row of the main conversation as a session does: a response one block per row.
+function store($: Engine, uuid: string, block: Record<string, unknown>) {
+  const door = block.type === 'tool_result' ? 'tool-result' : 'response'
+  const origin = door === 'response' ? { kind: 'model' as const, model: 'claude-opus-5-5' } : { kind: 'tool' as const, tool: 'Bash' }
+  const type = door === 'response' ? 'assistant' : 'user'
+  return $.session.append({ message: { type, role: type, content: [block] }, door, origin, uuid } as never)
+}
+
+const said = (text: string) => ({ type: 'text', text })
+const ran = (id: string) => ({ type: 'tool_use', id, name: 'Bash', input: { command: 'deploy' } })
+const result = (id: string) => ({ type: 'tool_result', tool_use_id: id, content: 'ok' })
+
+function row($: Engine, surface: (typeof SURFACES)[number], uuid: string, text: string) {
+  return $.ui.mount({ plugin: PLUGIN, surface, component: 'AssistantMessage', requestId: uuid, props: { text, isFirstOfReply: true } })
+}
+
+test('text written beside a tool call is quiet; the answer is drawn as the app draws it', async ($, on) => {
+  engine(on)
   await start($)
-  await step($)
+  await store($, 'n1', said('Checking the config first.'))
+  await store($, 't1', ran('t1'))
+  await store($, 'r1', result('t1'))
+  await store($, 'a1', said('Done: the build passes now.'))
   for (const surface of SURFACES) {
-    const answer = await message($, surface, 'Done: the build passes now.')
+    const narration = await row($, surface, 'n1', 'Checking the config first.')
+    const quiet = await narration.find({ type: 'Text' })
+    expect(quiet?.text).toBe('Checking the config first.')
+    expect(quiet?.props).toMatchObject({ italic: true, dimColor: true, color: 'suggestion' })
+    await narration.unmount()
+
+    const answer = await row($, surface, 'a1', 'Done: the build passes now.')
     expect((await answer.find({ type: 'Text' }))?.text).toBe('engine AssistantMessage')
     await answer.unmount()
+  }
+})
 
-    const narration = await message($, surface, 'Checking the config first.')
-    const row = await narration.find({ type: 'Text' })
-    expect(row?.text).toBe('Checking the config first.')
-    expect(row?.props).toMatchObject({ italic: true, dimColor: true, color: 'suggestion' })
+test('an answer that repeats earlier narration word for word keeps its look', async ($, on) => {
+  engine(on)
+  await start($)
+  await store($, 'n1', said('The deployment completed successfully.'))
+  await store($, 't1', ran('t1'))
+  await store($, 'r1', result('t1'))
+  await store($, 'a1', said('The deployment completed successfully.'))
+  for (const surface of SURFACES) {
+    const answer = await row($, surface, 'a1', 'The deployment completed successfully.')
+    expect((await answer.find({ type: 'Text' }))?.text).toBe('engine AssistantMessage')
+    await answer.unmount()
+    const narration = await row($, surface, 'n1', 'The deployment completed successfully.')
+    expect((await narration.find({ type: 'Text' }))?.props).toMatchObject({ italic: true })
     await narration.unmount()
+  }
+})
+
+test('a row that holds both the text and the tool call is narration', async ($, on) => {
+  engine(on)
+  await start($)
+  await $.session.append({
+    message: { type: 'assistant', role: 'assistant', content: [said('Running the deploy.'), ran('t1')] },
+    door: 'response',
+    origin: { kind: 'model', model: 'claude-opus-5-5' },
+    uuid: 'both',
+  } as never)
+  const narration = await row($, 'terminal', 'both', 'Running the deploy.')
+  expect((await narration.find({ type: 'Text' }))?.props).toMatchObject({ italic: true })
+})
+
+test('where no row id reaches the mod, text is matched by the steps, and an answer never goes quiet', async ($, on) => {
+  const deploy = { name: 'Bash', input: { command: 'deploy' } }
+  engine(on, [], [
+    { answer: 'Checking the config first.', toolUses: [deploy] },
+    { answer: 'The deployment completed successfully.', toolUses: [deploy] },
+    { answer: 'The deployment completed successfully.', toolUses: [] },
+  ])
+  await start($)
+  await step($)
+  await step($)
+  await step($)
+  for (const surface of SURFACES) {
+    const narration = await message($, surface, 'Checking the config first.')
+    expect((await narration.find({ type: 'Text' }))?.props).toMatchObject({ italic: true, color: 'suggestion' })
+    await narration.unmount()
+    const answer = await message($, surface, 'The deployment completed successfully.')
+    expect((await answer.find({ type: 'Text' }))?.text).toBe('engine AssistantMessage')
+    await answer.unmount()
   }
 })
 
@@ -64,6 +134,7 @@ test('a summary block is quiet, and narration from before the session loaded too
   engine(on, [
     { role: 'user', text: 'fix it', toolUses: [] },
     { role: 'assistant', text: 'Looking at the **logs**.', toolUses: [{ tool_use_id: 'x', tool: 'Bash', input: {} }] },
+    { role: 'assistant', text: 'Fixed.', toolUses: [{ tool_use_id: 'y', tool: 'Bash', input: {} }] },
     { role: 'assistant', text: 'Fixed.', toolUses: [] },
   ])
   await start($)
