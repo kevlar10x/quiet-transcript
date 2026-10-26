@@ -17,12 +17,12 @@ const KEEP_HASHES = 2000
 
 // FNV-1a over a paragraph with its whitespace collapsed.
 function hash(text: string) {
-  let h = 0x811c9dc5
+  let sum = 0x811c9dc5
   for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i)
-    h = Math.imul(h, 0x01000193)
+    sum ^= text.charCodeAt(i)
+    sum = Math.imul(sum, 0x01000193)
   }
-  return (h >>> 0).toString(36)
+  return (sum >>> 0).toString(36)
 }
 
 function hashesOf(text: string) {
@@ -180,7 +180,7 @@ export const register: Register = on => {
   on('ui.render', { component: 'AssistantMessage' }, async ($, e, next) => {
     const known = new Set(await read($, narration))
     const hashes = hashesOf(e.props.text)
-    const isNarration = e.props.isSummary === true || (hashes.length > 0 && hashes.every(h => known.has(h)))
+    const isNarration = e.props.isSummary === true || (hashes.length > 0 && hashes.every(one => known.has(one)))
     if (!isNarration) return next(e)
     const { Text } = $.ui.resolve(e)
     return <Text {...QUIET}>{plain(e.props.text)}</Text>
