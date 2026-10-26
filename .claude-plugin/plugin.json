@@ -8,6 +8,7 @@
   "repository": "https://github.com/kevlar10x/quiet-transcript",
   "documentationUrl": "https://github.com/kevlar10x/quiet-transcript#readme",
   "supportUrl": "https://github.com/kevlar10x/quiet-transcript/issues",
+  "privacyPolicyUrl": "https://github.com/kevlar10x/quiet-transcript#privacy",
   "keywords": ["transcript", "readability", "focus", "narration", "tool-calls", "mod"],
   "types": "./types/index.d.ts"
 }
