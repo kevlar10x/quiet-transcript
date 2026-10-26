@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- The README and the mod's code name kevlar10x and link the original repository.
+
 ## 0.1.2 - 2026-10-26
 
 - In the desktop app, a group of tool calls now shows only the app's own collapsed row, such as "Used 3 tools". The mod's count line used to appear under it as a second row.

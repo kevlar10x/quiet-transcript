@@ -1,6 +1,8 @@
 import { atom, memberOf, read, update } from 'claude-code'
 import type { EngineInterface as Engine, Register, ToolGroupCall } from 'claude-code'
 
+// quiet-transcript by kevlar10x, MIT: https://github.com/kevlar10x/quiet-transcript
+//
 // Quiets everything the transcript shows except Claude's answers. An answer is
 // the text of a model request that called no tool; text written before a tool
 // call is narration. Narration, tool rows, tool groups and command output draw

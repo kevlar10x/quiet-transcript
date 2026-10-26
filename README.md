@@ -52,6 +52,6 @@ claude plugin uninstall quiet-transcript
 
 ## License
 
-MIT
+MIT, by kevlar10x. The original is at https://github.com/kevlar10x/quiet-transcript.
 
 If you'd like to leave a tip: https://ko-fi.com/kevlar10x
