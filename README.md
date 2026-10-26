@@ -40,6 +40,10 @@ In the desktop app, where `/plugin` doesn't run: click **+** next to the prompt 
 
 Your own messages, Claude's question cards, background-task notices and the "working" indicator are left alone.
 
+## What it reads
+
+The mod reads the messages of the session it runs in to tell narration from answers. For the rest of that session it keeps short hashes of the narration paragraphs and a note of which tool lines have their details open. It makes no network requests and writes no files.
+
 ## Uninstall
 
 ```bash
