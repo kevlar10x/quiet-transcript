@@ -35,7 +35,7 @@ In the desktop app, where `/plugin` doesn't run: click **+** next to the prompt 
 | Claude's answer | As before |
 | Text written before a tool call | Faint tinted italic |
 | A tool call | One faint line, such as `Edited src/app.ts +2 -1`, with a details button |
-| A group of reads and searches | One faint line, such as `Read 2 files, searched 1 pattern` |
+| A group of reads and searches | One faint line, such as `Read 2 files, searched 1 pattern`. The desktop app keeps its own collapsed row, such as `Used 3 tools`. |
 | Slash-command output | Dimmed. Errors are left as they are. |
 
 Your own messages, Claude's question cards, background-task notices and the "working" indicator are left alone.

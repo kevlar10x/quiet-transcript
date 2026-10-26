@@ -163,7 +163,7 @@ test('a tool group is one quiet count line; details unfolds it as the app does',
   const call = (tool: string, isErrored = false) => ({ tool, input: {}, isRunning: false, isErrored, isInterrupted: false })
   const ui = await $.ui.mount({
     plugin: PLUGIN,
-    surface: 'desktop',
+    surface: 'terminal',
     component: 'ToolGroup',
     requestId: 'g1',
     props: { calls: [call('Read'), call('Read'), call('Grep'), call('Bash', true)], isActive: false, isExpanded: false },
@@ -172,6 +172,21 @@ test('a tool group is one quiet count line; details unfolds it as the app does',
   expect((await ui.find({ type: 'Text', text: '1 failed' }))?.props).toMatchObject({ color: 'error' })
   await ui.press({ key: 'details' })
   expect(await ui.find({ type: 'Text', text: 'engine ToolGroup expanded' })).toBeDefined()
+})
+
+test('on the desktop a tool group is left to the app, which already folds it under its own row', async ($, on) => {
+  engine(on)
+  await start($)
+  const call = (tool: string) => ({ tool, input: {}, isRunning: false, isErrored: false, isInterrupted: false })
+  const ui = await $.ui.mount({
+    plugin: PLUGIN,
+    surface: 'desktop',
+    component: 'ToolGroup',
+    requestId: 'g2',
+    props: { calls: [call('Read'), call('Bash')], isActive: false, isExpanded: false },
+  })
+  expect(await ui.find({ type: 'Text', text: 'engine ToolGroup' })).toBeDefined()
+  expect(await ui.find({ type: 'Button' })).toBeUndefined()
 })
 
 test('rows the view already shows in full, and errors, are left to the app', async ($, on) => {

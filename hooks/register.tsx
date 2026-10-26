@@ -221,8 +221,10 @@ export const register: Register = on => {
     return <Box />
   })
 
+  // The desktop folds a group under a collapsed row of its own ("Used 3 tools"),
+  // outside any render site, so a line drawn here would only repeat it.
   on('ui.render', { component: 'ToolGroup' }, async ($, e, next) => {
-    if (e.props.isExpanded) return next(e)
+    if (e.props.isExpanded || e.surface === 'desktop') return next(e)
     const { Box, Text, Button } = $.ui.resolve(e)
     const open = memberOf(isOpen, e)
     if (await read($, open)) {

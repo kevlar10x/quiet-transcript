@@ -1,6 +1,6 @@
 {
   "name": "quiet-transcript",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Quiets everything in the transcript except Claude's answers: narration, tool calls and command output draw in a faint tinted italic.",
   "author": { "name": "kevlar10x" },
   "license": "MIT",
