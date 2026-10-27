@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- The README says which Claude Code version the mod needs, and links the other kevlar10x mods.
+- The plugin listing has a display name, an icon and a short description.
 - The README says the mod only reads the rows a session stores and never changes them.
 
 ## 0.1.4 - 2026-10-27

@@ -8,7 +8,7 @@ The text Claude writes before a tool call, the tool calls themselves, grouped re
 
 Each quieted tool line has a **details** button that brings back the app's own card with the full output and diff. **hide details** folds it away again.
 
-It works in the Code tab of the Claude desktop app and in the terminal.
+It works in the Code tab of the Claude desktop app and in the terminal. It needs a Claude Code version that runs mods. Its tests pass on Claude Code 2.1.310, and it has only been tried on Windows.
 
 ## Install
 
@@ -53,5 +53,7 @@ claude plugin uninstall quiet-transcript
 ## License
 
 MIT, by kevlar10x. The original is at https://github.com/kevlar10x/quiet-transcript.
+
+More mods by kevlar10x, for the desktop app's sidebar: [status-dots](https://github.com/kevlar10x/status-dots) shows how each session ended, and [recent-sessions](https://github.com/kevlar10x/recent-sessions) lists your sessions by when each last finished.
 
 If you'd like to leave a tip: https://ko-fi.com/kevlar10x

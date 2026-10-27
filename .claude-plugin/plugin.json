@@ -1,14 +1,16 @@
 {
   "name": "quiet-transcript",
+  "displayName": "Quiet Transcript",
   "version": "0.1.4",
   "description": "Quiets everything in the transcript except Claude's answers: narration, tool calls and command output draw in a faint tinted italic.",
-  "author": { "name": "kevlar10x" },
+  "author": { "name": "kevlar10x", "url": "https://github.com/kevlar10x" },
   "license": "MIT",
   "homepage": "https://github.com/kevlar10x/quiet-transcript",
   "repository": "https://github.com/kevlar10x/quiet-transcript",
   "documentationUrl": "https://github.com/kevlar10x/quiet-transcript#readme",
   "supportUrl": "https://github.com/kevlar10x/quiet-transcript/issues",
   "privacyPolicyUrl": "https://github.com/kevlar10x/quiet-transcript#privacy",
+  "icon": "./.claude-plugin/icon.png",
   "keywords": ["transcript", "readability", "focus", "narration", "tool-calls", "mod"],
   "types": "./types/index.d.ts"
 }
