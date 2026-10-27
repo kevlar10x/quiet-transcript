@@ -42,7 +42,7 @@ Your own messages, Claude's question cards, background-task notices and the "wor
 
 ## Privacy
 
-The mod reads the messages of the session it runs in, and each row as the session stores it, to tell narration from answers. For the rest of that session it keeps the ids of the rows that hold narration, short hashes of Claude's paragraphs, and a note of which tool lines have their details open. It makes no network requests and writes no files.
+The mod reads the messages of the session it runs in, and each row as the session stores it, to tell narration from answers. For the rest of that session it keeps the ids of the rows that hold narration, short hashes of Claude's paragraphs, and a note of which tool lines have their details open. It only reads the stored rows and never changes or blocks one. It makes no network requests and writes no files.
 
 ## Uninstall
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- The README says the mod only reads the rows a session stores and never changes them.
+
 ## 0.1.4 - 2026-10-27
 
 - The marketplace is now called kevlar10x-quiet-transcript, so it installs next to other kevlar10x mods such as gtp. Existing installs keep updating as before.
