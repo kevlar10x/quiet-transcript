@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.4 - 2026-10-27
+
+- The marketplace is now called kevlar10x-quiet-transcript, so it installs next to other kevlar10x mods such as gtp. Existing installs keep updating as before.
+
 ## 0.1.3 - 2026-10-26
 
 - An answer that repeats something Claude wrote before a tool call keeps its normal look. Narration is now picked out by the message it's in, and text Claude also gave as an answer is never faded.

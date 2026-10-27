@@ -1,5 +1,5 @@
 {
-  "name": "kevlar10x",
+  "name": "kevlar10x-quiet-transcript",
   "owner": { "name": "kevlar10x" },
   "description": "Claude Code mods by kevlar10x",
   "plugins": [{ "name": "quiet-transcript", "source": "./" }]
